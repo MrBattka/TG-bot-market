@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/tg-bot-market/static/css/main.74bb606e.css",
+    "main.js": "/tg-bot-market/static/js/main.52029c94.js",
+    "static/js/453.a51b82a7.chunk.js": "/tg-bot-market/static/js/453.a51b82a7.chunk.js",
+    "index.html": "/tg-bot-market/index.html",
+    "main.74bb606e.css.map": "/tg-bot-market/static/css/main.74bb606e.css.map",
+    "main.52029c94.js.map": "/tg-bot-market/static/js/main.52029c94.js.map",
+    "453.a51b82a7.chunk.js.map": "/tg-bot-market/static/js/453.a51b82a7.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.74bb606e.css",
+    "static/js/main.52029c94.js"
+  ]
+}
