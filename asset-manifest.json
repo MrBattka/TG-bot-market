@@ -1,15 +1,17 @@
 {
   "files": {
-    "main.css": "/TG-bot-market/static/css/main.74bb606e.css",
-    "main.js": "/TG-bot-market/static/js/main.a37e8807.js",
-    "static/js/453.a51b82a7.chunk.js": "/TG-bot-market/static/js/453.a51b82a7.chunk.js",
-    "index.html": "/TG-bot-market/index.html",
-    "main.74bb606e.css.map": "/TG-bot-market/static/css/main.74bb606e.css.map",
-    "main.a37e8807.js.map": "/TG-bot-market/static/js/main.a37e8807.js.map",
-    "453.a51b82a7.chunk.js.map": "/TG-bot-market/static/js/453.a51b82a7.chunk.js.map"
+    "main.css": "/SettingPrices/static/css/main.f2c1174f.css",
+    "main.js": "/SettingPrices/static/js/main.7011198e.js",
+    "static/js/453.a51b82a7.chunk.js": "/SettingPrices/static/js/453.a51b82a7.chunk.js",
+    "static/media/bg1.jpg": "/SettingPrices/static/media/bg1.1b123de84a166fa1375d.jpg",
+    "static/media/icon1.png": "/SettingPrices/static/media/icon1.37973d7c2e2c44c05198.png",
+    "index.html": "/SettingPrices/index.html",
+    "main.f2c1174f.css.map": "/SettingPrices/static/css/main.f2c1174f.css.map",
+    "main.7011198e.js.map": "/SettingPrices/static/js/main.7011198e.js.map",
+    "453.a51b82a7.chunk.js.map": "/SettingPrices/static/js/453.a51b82a7.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.74bb606e.css",
-    "static/js/main.a37e8807.js"
+    "static/css/main.f2c1174f.css",
+    "static/js/main.7011198e.js"
   ]
 }
