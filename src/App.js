@@ -23,8 +23,14 @@ function App() {
           const applyPrices = (rows) => {
             const copy = rows.map(r => ({ ...r }));
 
+            const parseNumber = (v) => {
+              if (v == null || v === "") return 0;
+              const s = String(v).replace(",", ".").replace(/\s+/g, "");
+              const n = Number(s);
+              return Number.isFinite(n) ? n : 0;
+            };
+
             const parseSpec = (name = "") => {
-              // примеры: "Xiaomi Redmi A5 4G 3/64 Blue", "Xiaomi Redmi 13 6/128GB Midnight Black"
               const m = name.match(/^(.+?)\s+(\d+)\/(\d+)\s*(?:GB)?\s*(.+)$/i);
               if (!m) return null;
               return {
@@ -46,33 +52,66 @@ function App() {
             });
 
             Object.values(groups).forEach(group => {
-              // берём только реальные цены (>0)
-              const priced = group.filter(x => Number(x.price) > 0);
-              if (priced.length === 0) return;
-
-              // выбираем источник: сначала по RAM, затем по storage
-              const source = priced.reduce((best, cur) => {
-                if (!best) return cur;
-                if (cur.spec.ram > best.spec.ram) return cur;
-                if (cur.spec.ram === best.spec.ram && cur.spec.storage > best.spec.storage) return cur;
-                return best;
-              }, null);
-
-              const sourcePrice = Number(source.price);
-              const sourceRam = source.spec.ram;
-              const sourceStorage = source.spec.storage;
-
-              group.forEach(item => {
-                const targetIdx = item.__idx;
-                const curPrice = copy[targetIdx].price;
-                const isSmaller =
-                  (item.spec.ram < sourceRam) ||
-                  (item.spec.ram === sourceRam && item.spec.storage < sourceStorage);
-
-                if (isSmaller && (curPrice == null || curPrice === "" || Number(curPrice) === 0)) {
-                  copy[targetIdx].price = sourcePrice;
-                }
+              // сортируем сверху вниз: RAM desc, затем storage desc
+              group.sort((a, b) => {
+                if (a.spec.ram !== b.spec.ram) return b.spec.ram - a.spec.ram;
+                return b.spec.storage - a.spec.storage;
               });
+
+              let runningPrice = null;
+              let basePurchase = null;      // если источник — purchase, держим его здесь
+              let cumulativeMinus = 0;      // сумма минусов от источника
+
+              for (let i = 0; i < group.length; i++) {
+                const item = group[i];
+                const idx = item.__idx;
+
+                const existingPrice = parseNumber(item.price);   // уже проставленная price
+                const purchase = parseNumber(item.purchase);     // source purchase
+                const minusVal = parseNumber(item.minus);       // вычитаем для нижних
+
+                // Если есть purchase — используем его как источник (предпочтение перед price).
+                // При этом не перезаписываем уже проставленный price на этой строке.
+                if (purchase > 0) {
+                  if (existingPrice === 0) {
+                    copy[idx].price = purchase;
+                  }
+                  basePurchase = purchase;
+                  runningPrice = purchase;
+                  cumulativeMinus = 0;
+                  continue;
+                }
+
+                // Если нет purchase, но есть уже проставленный price — используем его как источник (только чтение).
+                if (existingPrice > 0) {
+                  basePurchase = null;
+                  cumulativeMinus = 0;
+                  runningPrice = existingPrice;
+                  continue;
+                }
+
+                // Нет ни purchase, ни price на текущей строке:
+                // если есть текущий источник сверху — вычисляем новую цену и записываем только если price пустая
+                if (runningPrice != null) {
+                  if (basePurchase != null) {
+                    // вычитаем минусы из original purchase (накопительно)
+                    cumulativeMinus += minusVal;
+                    const newPrice = Math.max(0, basePurchase - cumulativeMinus);
+                    if (parseNumber(copy[idx].price) === 0) {
+                      copy[idx].price = newPrice;
+                    }
+                    runningPrice = newPrice;
+                  } else {
+                    // источник — ранее найденная price (нет purchase выше) => вычитаем из runningPrice
+                    const newPrice = Math.max(0, runningPrice - minusVal);
+                    if (parseNumber(copy[idx].price) === 0) {
+                      copy[idx].price = newPrice;
+                    }
+                    runningPrice = newPrice;
+                  }
+                }
+                // иначе — нет источника сверху, оставляем пустым
+              }
             });
 
             return copy;
