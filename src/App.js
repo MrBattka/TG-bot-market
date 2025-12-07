@@ -31,14 +31,21 @@ function App() {
             };
 
             const parseSpec = (name = "") => {
-              const m = name.match(/^(.+?)\s+(\d+)\/(\d+)\s*(?:GB)?\s*(.+)$/i);
+              // Захватываем: base, RAM, storage, опционально единицу (GB|TB), и цвет/доп.инфо
+              const m = name.match(/^(.+?)\s+(\d+)\/(\d+)\s*(?:(GB|TB))?\s*(.+)$/i);
               if (!m) return null;
-              return {
-                base: m[1].trim(),
-                ram: parseInt(m[2], 10),
-                storage: parseInt(m[3], 10),
-                color: m[4].trim(),
-              };
+              const base = m[1].trim();
+              const ram = parseInt(m[2], 10);
+              const storageRaw = parseInt(m[3], 10);
+              const unit = m[4] ? m[4].toUpperCase() : null;
+              const color = m[5].trim();
+
+              // Если явно TB — переводим в GB. Если TB не указан, но формат 16/1 или 24/1 — считаем как 1TB.
+              let storageGb = storageRaw;
+              if (unit === "TB") storageGb = storageRaw * 1024;
+              else if (!unit && (ram === 16 || ram === 24) && storageRaw === 1) storageGb = 1024;
+
+              return { base, ram, storage: storageGb, color };
             };
 
             const groups = {};
@@ -58,59 +65,43 @@ function App() {
                 return b.spec.storage - a.spec.storage;
               });
 
-              let runningPrice = null;
-              let basePurchase = null;      // если источник — purchase, держим его здесь
-              let cumulativeMinus = 0;      // сумма минусов от источника
+              // ищем источник: среди записей с price > 0 выбрать с наибольшим RAM, при равном RAM — с наибольшим storage
+              const priced = group.filter(x => parseNumber(x.price) > 0);
+              if (priced.length === 0) return;
 
-              for (let i = 0; i < group.length; i++) {
+              priced.sort((a, b) => {
+                if (a.spec.ram !== b.spec.ram) return b.spec.ram - a.spec.ram;
+                return b.spec.storage - a.spec.storage;
+              });
+
+              const source = priced[0];
+              const sourcePrice = parseNumber(source.price);
+
+              // найдём позицию источника в отсортированной группе
+              const startIdx = group.findIndex(g => g.__idx === source.__idx);
+              if (startIdx === -1) return;
+
+              // running — текущая цена, от которой вычитаем minus при спуске вниз
+              let running = sourcePrice;
+
+              // пройти вниз по списку и проставлять цены, не перезаписывая уже заданные
+              for (let i = startIdx + 1; i < group.length; i++) {
                 const item = group[i];
                 const idx = item.__idx;
+                const curPrice = parseNumber(copy[idx].price);
 
-                const existingPrice = parseNumber(item.price);   // уже проставленная price
-                const purchase = parseNumber(item.purchase);     // source purchase
-                const minusVal = parseNumber(item.minus);       // вычитаем для нижних
-
-                // Если есть purchase — используем его как источник (предпочтение перед price).
-                // При этом не перезаписываем уже проставленный price на этой строке.
-                if (purchase > 0) {
-                  if (existingPrice === 0) {
-                    copy[idx].price = purchase;
-                  }
-                  basePurchase = purchase;
-                  runningPrice = purchase;
-                  cumulativeMinus = 0;
+                // если в этой строке уже есть price (>0) — используем её как новый источник и не перезаписываем
+                if (curPrice > 0) {
+                  running = curPrice;
                   continue;
                 }
 
-                // Если нет purchase, но есть уже проставленный price — используем его как источник (только чтение).
-                if (existingPrice > 0) {
-                  basePurchase = null;
-                  cumulativeMinus = 0;
-                  runningPrice = existingPrice;
-                  continue;
+                // иначе вычитаем minus из текущего running и записываем результат в price (если пусто)
+                const minusVal = parseNumber(item.minus);
+                running = Math.max(0, running - minusVal);
+                if (parseNumber(copy[idx].price) === 0) {
+                  copy[idx].price = running;
                 }
-
-                // Нет ни purchase, ни price на текущей строке:
-                // если есть текущий источник сверху — вычисляем новую цену и записываем только если price пустая
-                if (runningPrice != null) {
-                  if (basePurchase != null) {
-                    // вычитаем минусы из original purchase (накопительно)
-                    cumulativeMinus += minusVal;
-                    const newPrice = Math.max(0, basePurchase - cumulativeMinus);
-                    if (parseNumber(copy[idx].price) === 0) {
-                      copy[idx].price = newPrice;
-                    }
-                    runningPrice = newPrice;
-                  } else {
-                    // источник — ранее найденная price (нет purchase выше) => вычитаем из runningPrice
-                    const newPrice = Math.max(0, runningPrice - minusVal);
-                    if (parseNumber(copy[idx].price) === 0) {
-                      copy[idx].price = newPrice;
-                    }
-                    runningPrice = newPrice;
-                  }
-                }
-                // иначе — нет источника сверху, оставляем пустым
               }
             });
 
