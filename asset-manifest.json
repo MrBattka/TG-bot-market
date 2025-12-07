@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/TG-bot-market/static/css/main.0cb81f31.css",
-    "main.js": "/TG-bot-market/static/js/main.e0e7f06f.js",
+    "main.js": "/TG-bot-market/static/js/main.7245dc26.js",
     "static/js/453.a51b82a7.chunk.js": "/TG-bot-market/static/js/453.a51b82a7.chunk.js",
     "static/media/bg1.jpg": "/TG-bot-market/static/media/bg1.1b123de84a166fa1375d.jpg",
     "static/media/icon1.png": "/TG-bot-market/static/media/icon1.37973d7c2e2c44c05198.png",
     "index.html": "/TG-bot-market/index.html",
     "main.0cb81f31.css.map": "/TG-bot-market/static/css/main.0cb81f31.css.map",
-    "main.e0e7f06f.js.map": "/TG-bot-market/static/js/main.e0e7f06f.js.map",
+    "main.7245dc26.js.map": "/TG-bot-market/static/js/main.7245dc26.js.map",
     "453.a51b82a7.chunk.js.map": "/TG-bot-market/static/js/453.a51b82a7.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.0cb81f31.css",
-    "static/js/main.e0e7f06f.js"
+    "static/js/main.7245dc26.js"
   ]
 }
